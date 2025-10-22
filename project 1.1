@@ -1,0 +1,26 @@
+import pygame
+
+
+w, h = 10, 20
+tile = 45
+game_field = w * tile, h * tile
+fps = 60
+
+pygame.init()
+screen = pygame.display.set_mode(game_field)
+clock = pygame.time.Clock()
+
+grid = [pygame.Rect(x * tile, y * tile, tile, tile) for x in range(w) for y in range (h)]
+
+while True:
+    screen.fill(pygame.Color("black"))
+
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            exit()
+
+    [pygame.draw.rect(screen, (45, 45, 45), i_rect, 1) for i_rect in grid]
+
+
+    pygame.display.flip()
+    clock.tick(fps)
