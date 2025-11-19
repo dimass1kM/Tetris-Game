@@ -4,7 +4,7 @@ from copy import deepcopy
 w, h = 10, 20
 tile = 45
 game_field = w * tile, h * tile
-field = 750, 940
+field = 750, 920
 fps = 60
 
 pygame.init()
@@ -43,7 +43,9 @@ def check_borders():
 
 while True:
     dx, rotate = 0, False
-    screen.fill(pygame.Color('black'))
+    sc.fill(pygame.Color('purple'))
+    sc.blit(screen, (0, 0))
+    screen.fill(pygame.Color('gray'))
 #управление
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
