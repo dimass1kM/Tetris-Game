@@ -4,10 +4,12 @@ from copy import deepcopy
 w, h = 10, 20
 tile = 45
 game_field = w * tile, h * tile
+field = 750, 940
 fps = 60
 
 pygame.init()
-screen = pygame.display.set_mode(game_field)
+sc = pygame.display.set_mode(field)
+screen = pygame.Surface(game_field)
 clock = pygame.time.Clock()
 
 grid = [pygame.Rect(x * tile, y * tile, tile, tile) for x in range(w) for y in range (h)]
