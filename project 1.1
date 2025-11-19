@@ -31,6 +31,9 @@ map = [[0 for i in range(w)] for i in range(h)]
 anim_count, anim_speed, anim_limit = 0, 60, 2000
 figure = deepcopy(choice(figures))
 
+color_fg = lambda : (randrange(30, 256), randrange(30, 256), randrange(30, 256))
+color = color_fg()
+
 figure = deepcopy(figures[4])
 #ограничение_фигуры
 def check_borders():
@@ -45,7 +48,7 @@ while True:
     dx, rotate = 0, False
     sc.fill(pygame.Color('purple'))
     sc.blit(screen, (0, 0))
-    screen.fill(pygame.Color('gray'))
+    screen.fill(pygame.Color('white'))
 #управление
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -78,6 +81,7 @@ while True:
             if not check_borders():
                 for i in range(4):
                     map[figure_version[i].y][figure_version[i].x] = pygame.Color("blue")
+                color = color_fg()
                 figure = deepcopy(choice(figures))
                 anim_limit = 2000
                 break
@@ -115,7 +119,7 @@ while True:
         figure_rect.x = figure[i].x * tile
         figure_rect.y = figure[i].y * tile
         #цвет_фигуры
-        pygame.draw.rect(screen, pygame.Color('white'), figure_rect)
+        pygame.draw.rect(screen, color, figure_rect)
     #отрисовка_карты
     for y, raw in enumerate(map):
         for x, col in enumerate(raw):
