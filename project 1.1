@@ -40,7 +40,7 @@ def check_borders():
 
 
 while True:
-    dx = 0
+    dx, rotate = 0, False
     screen.fill(pygame.Color('black'))
 #управление
     for event in pygame.event.get():
@@ -53,6 +53,8 @@ while True:
                 dx = 1
             elif event.key == pygame.K_DOWN:
                 anim_limit = 100
+            elif event.key == pygame.K_UP:
+                rotate = True
 
     #движение_фигуры_oX
     figure_version = deepcopy(figure)
@@ -75,6 +77,31 @@ while True:
                 figure = deepcopy(choice(figures))
                 anim_limit = 2000
                 break
+
+#вращение_фигур
+    axis = figure[0]
+    figure_version = deepcopy(figure)
+    if rotate:
+        for i in range(4):
+            x = figure[i].y - axis.y
+            y = figure[i].x - axis.x
+            figure[i].x = axis.x - x
+            figure[i].y = axis.y + y
+            if not check_borders():
+                figure = deepcopy(figure_version)
+                break
+
+#удаление_строк
+    line = h - 1
+    for row in range (h -1, -1, -1):
+        count = 0
+        for i in range(w):
+            if map[row][i]:
+                count += 1
+            map[line][i] = map[row][i]
+        if count <  w:
+            line -= 1
+
 #сетка_цвет_сетки
     [pygame.draw.rect(screen, (30,25,70), i_rect, 1) for i_rect in grid]
 
