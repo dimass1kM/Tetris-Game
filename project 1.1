@@ -1,6 +1,7 @@
 import pygame
 from copy import deepcopy
 from random import choice, randrange
+
 w, h = 10, 20
 tile = 45
 game_field = w * tile, h * tile
@@ -29,12 +30,19 @@ figure_rect = pygame.Rect(0, 0, tile - 2, tile -2)
 map = [[0 for i in range(w)] for i in range(h)]
 
 anim_count, anim_speed, anim_limit = 0, 60, 2000
-figure = deepcopy(choice(figures))
+
 
 color_fg = lambda : (randrange(30, 256), randrange(30, 256), randrange(30, 256))
-color = color_fg()
+
+
+figure, NEXT_fg = deepcopy(choice(figures)), deepcopy(choice(figures))
+color, next_color = color_fg(), color_fg()
 
 figure = deepcopy(figures[4])
+
+score, lines = 0, 0
+scores = {0: 0, 1: 100, 2: 300, 3: 700, 4: 1500}
+
 #ограничение_фигуры
 def check_borders():
     if figure[i].x < 0 or figure[i].x > w - 1:
@@ -46,9 +54,14 @@ def check_borders():
 
 while True:
     dx, rotate = 0, False
-    sc.fill(pygame.Color('purple'))
+    sc.fill(pygame.Color('black'))
     sc.blit(screen, (0, 0))
     screen.fill(pygame.Color('white'))
+
+    #задержка_полных_строк
+    for i in range(lines):
+        pygame.time.wait(200)
+
 #управление
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -80,12 +93,11 @@ while True:
             figure[i].y += 1
             if not check_borders():
                 for i in range(4):
-                    map[figure_version[i].y][figure_version[i].x] = pygame.Color("blue")
-                color = color_fg()
-                figure = deepcopy(choice(figures))
+                    map[figure_version[i].y][figure_version[i].x] = pygame.Color('blue')
+                figure, color = NEXT_fg, next_color
+                NEXT_fg, next_color = deepcopy(choice(figures)), color_fg()
                 anim_limit = 2000
                 break
-
 #вращение_фигур
     axis = figure[0]
     figure_version = deepcopy(figure)
@@ -100,7 +112,7 @@ while True:
                 break
 
 #удаление_строк
-    line = h - 1
+    line, lines = h - 1, 0
     for row in range (h -1, -1, -1):
         count = 0
         for i in range(w):
@@ -109,6 +121,11 @@ while True:
             map[line][i] = map[row][i]
         if count <  w:
             line -= 1
+        else:
+            anim_speed += 3
+            lines +=1
+#score
+    score += scores[lines]
 
 #сетка_цвет_сетки
     [pygame.draw.rect(screen, (30,25,70), i_rect, 1) for i_rect in grid]
@@ -120,6 +137,7 @@ while True:
         figure_rect.y = figure[i].y * tile
         #цвет_фигуры
         pygame.draw.rect(screen, color, figure_rect)
+
     #отрисовка_карты
     for y, raw in enumerate(map):
         for x, col in enumerate(raw):
@@ -127,8 +145,17 @@ while True:
                 figure_rect.x, figure_rect.y = x * tile, y * tile
                 pygame.draw.rect(screen, col, figure_rect)
 
+    #отрисовка_следующей
+    for i in range(4):
+        figure_rect.x = NEXT_fg[i].x * tile + 380
+        figure_rect.y = NEXT_fg[i].y * tile + 185
+        # цвет_фигуры
+        pygame.draw.rect(sc, next_color, figure_rect)
+
+    sc.blit(title_score, (535, 700))
+    #sc.blit(title_score, (535, 700))
+
 
     pygame.display.flip()
     clock.tick(fps)
-
 
