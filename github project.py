@@ -1,0 +1,171 @@
+import pygame
+from copy import deepcopy
+from random import choice, randrange
+
+w, h = 10, 20
+tile = 45
+game_field = w * tile, h * tile
+field = 750, 920
+fps = 60
+
+pygame.init()
+sc = pygame.display.set_mode(field)
+screen = pygame.Surface(game_field)
+clock = pygame.time.Clock()
+
+grid = [pygame.Rect(x * tile, y * tile, tile, tile) for x in range(w) for y in range (h)]
+
+#координаты_фигур
+figures_position = [[(-1, 0), (-2, 0), (0, 0), (1, 0)],
+                    [(0, -1), (-1, -1), (-1, 0), (0,0)],
+                    [(0, 0), (-1, 0), (-1, 1), (0, -1)],
+                    [(0, 0), (-1, 0), (0, 1), (-1, -1)],
+                    [(0, 0), (0, -1), (0, 1), (-1, -1)],
+                    [(0, 0), (0, -1), (0, 1), (-1, -1)],
+                    [(0, 0), (0, -1), (0, 1), (-1, 0)]]
+
+#размещение_фигур
+figures = [[pygame.Rect(x + w // 2, y + 1, 1, 1) for x, y in fig_pos] for fig_pos in figures_position]
+figure_rect = pygame.Rect(0, 0, tile - 2, tile -2)
+map = [[0 for i in range(w)] for i in range(h)]
+
+anim_count, anim_speed, anim_limit = 0, 60, 2000
+
+main_font = pygame.font.SysFont('Arial', 65)
+font = pygame.font.SysFont('Arial', 50)
+
+title_tetris = main_font.render("TETRIS", True, pygame.Color("Orange"))
+title_score = font.render('score', True, pygame.Color("white"))
+
+
+
+
+
+color_fg = lambda : (randrange(30, 256), randrange(30, 256), randrange(30, 256))
+
+
+figure, NEXT_fg = deepcopy(choice(figures)), deepcopy(choice(figures))
+color, next_color = color_fg(), color_fg()
+
+figure = deepcopy(figures[4])
+
+score, lines = 0, 0
+scores = {0: 0, 1: 100, 2: 300, 3: 700, 4: 1500}
+
+#ограничение_фигуры
+def check_borders():
+    if figure[i].x < 0 or figure[i].x > w - 1:
+        return False
+    elif figure[i].y > h - 1 or map[figure[i].y][figure[i].x]:
+        return False
+    return True
+
+
+while True:
+    dx, rotate = 0, False
+    sc.fill(pygame.Color('black'))
+    sc.blit(screen, (0, 0))
+    screen.fill(pygame.Color('white'))
+
+    #задержка_полных_строк
+    for i in range(lines):
+        pygame.time.wait(200)
+
+#управление
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            exit()
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_LEFT:
+                dx = -1
+            elif event.key == pygame.K_RIGHT:
+                dx = 1
+            elif event.key == pygame.K_DOWN:
+                anim_limit = 100
+            elif event.key == pygame.K_UP:
+                rotate = True
+
+    #движение_фигуры_oX
+    figure_version = deepcopy(figure)
+    for i in range(4):
+        figure[i].x += dx
+        if not check_borders():
+            figure = deepcopy(figure_version)
+            break
+
+    #движение_фигуры_oY
+    anim_count += anim_speed
+    if anim_count > anim_limit:
+        anim_count = 0
+        figure_version = deepcopy(figure)
+        for i in range(4):
+            figure[i].y += 1
+            if not check_borders():
+                for i in range(4):
+                    map[figure_version[i].y][figure_version[i].x] = pygame.Color('blue')
+                figure, color = NEXT_fg, next_color
+                NEXT_fg, next_color = deepcopy(choice(figures)), color_fg()
+                anim_limit = 2000
+                break
+#вращение_фигур
+    axis = figure[0]
+    figure_version = deepcopy(figure)
+    if rotate:
+        for i in range(4):
+            x = figure[i].y - axis.y
+            y = figure[i].x - axis.x
+            figure[i].x = axis.x - x
+            figure[i].y = axis.y + y
+            if not check_borders():
+                figure = deepcopy(figure_version)
+                break
+
+#удаление_строк
+    line, lines = h - 1, 0
+    for row in range (h -1, -1, -1):
+        count = 0
+        for i in range(w):
+            if map[row][i]:
+                count += 1
+            map[line][i] = map[row][i]
+        if count <  w:
+            line -= 1
+        else:
+            anim_speed += 3
+            lines +=1
+#score
+    score += scores[lines]
+
+#сетка_цвет_сетки
+    [pygame.draw.rect(screen, (30,25,70), i_rect, 1) for i_rect in grid]
+
+#отрисовка_фигуры
+    #(4)_из_сколькх_частоей_состоит_фигура
+    for i in range(4):
+        figure_rect.x = figure[i].x * tile
+        figure_rect.y = figure[i].y * tile
+        #цвет_фигуры
+        pygame.draw.rect(screen, color, figure_rect)
+
+    #отрисовка_карты
+    for y, raw in enumerate(map):
+        for x, col in enumerate(raw):
+            if col:
+                figure_rect.x, figure_rect.y = x * tile, y * tile
+                pygame.draw.rect(screen, col, figure_rect)
+
+    #отрисовка_следующей
+    for i in range(4):
+        figure_rect.x = NEXT_fg[i].x * tile + 380
+        figure_rect.y = NEXT_fg[i].y * tile + 185
+        # цвет_фигуры
+        pygame.draw.rect(sc, next_color, figure_rect)
+
+    #отрисовка_меню
+    sc.blit(title_tetris, (500, 10))
+    sc.blit(title_score, (535, 700))
+    sc.blit(font.render(str(score), True, pygame.Color('white')), (550, 840))
+
+    pygame.display.flip()
+    clock.tick(fps)
+
