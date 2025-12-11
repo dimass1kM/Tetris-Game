@@ -36,8 +36,7 @@ font = pygame.font.SysFont('Arial', 50)
 
 title_tetris = main_font.render("TETRIS", True, pygame.Color("Orange"))
 title_score = font.render('score', True, pygame.Color("white"))
-
-
+title_record = font.render('record', True, pygame.Color("purple"))
 
 
 
@@ -60,8 +59,21 @@ def check_borders():
         return False
     return True
 
+def check_record():
+    try:
+        with open('record') as f:
+            return f.readline()
+    except FileNotFoundError:
+        with open('record', 'w') as f:
+            f.write('0')
+
+def get_record(record, score):
+    rec = max(int(record), score)
+    with open('record', 'w') as f:
+        f.write(str(rec))
 
 while True:
+    record = check_record()
     dx, rotate = 0, False
     sc.fill(pygame.Color('black'))
     sc.blit(screen, (0, 0))
@@ -69,7 +81,7 @@ while True:
 
     #задержка_полных_строк
     for i in range(lines):
-        pygame.time.wait(200)
+        pygame.time.wait(50)
 
 #управление
     for event in pygame.event.get():
@@ -164,7 +176,24 @@ while True:
     #отрисовка_меню
     sc.blit(title_tetris, (500, 10))
     sc.blit(title_score, (535, 700))
-    sc.blit(font.render(str(score), True, pygame.Color('white')), (550, 840))
+    sc.blit(font.render(str(score), True, pygame.Color('white')), (560, 750))
+    sc.blit(title_record, (525, 550))
+    sc.blit(font.render(record, True, pygame.Color('gold')), (560, 600))
+
+
+#конец_игры
+    for i in range(w):
+        if map[0][i]:
+            get_record(record, score)
+            map = [[0 for i in range(w)] for j in range(h)]
+            anim_count, anim_speed, anim_limit = 0, 60, 2000
+            score = 0
+            for i_rect in grid:
+                pygame.draw.rect(screen, color_fg(), i_rect)
+                sc.blit(screen, (0, 0))
+                pygame.display.flip()
+                clock.tick(200)
+
 
     pygame.display.flip()
     clock.tick(fps)
